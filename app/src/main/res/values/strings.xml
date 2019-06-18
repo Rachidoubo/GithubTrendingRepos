@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">GitHub Repos</string>
+    <string name="title_activity_main2">Main2Activity</string>
+    <string name="title_home">Rating</string>
+    <string name="title_setting">Settings</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+
+</resources>
