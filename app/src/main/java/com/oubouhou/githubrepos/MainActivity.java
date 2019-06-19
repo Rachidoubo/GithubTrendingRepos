@@ -71,8 +71,10 @@ public class MainActivity extends AppCompatActivity {
                 LinearLayoutManager layoutManager = (LinearLayoutManager) repoRecyclerView.getLayoutManager();
                 if(layoutManager.findLastCompletelyVisibleItemPosition() == repoRecyclerView.getAdapter().getItemCount()-1){
                     progressBar.setVisibility(View.VISIBLE);
-                    fetchingJsonFile("https://api.github.com/search/repositories?q=created:>"+getDate()+"&sort=stars&order=desc&page="+page);
                     page++;
+                    loadMore("https://api.github.com/search/repositories?q=created:>"+getDate()+"&sort=stars&order=desc&page="+page);
+
+
                 }
             }
         });
@@ -98,9 +100,10 @@ public class MainActivity extends AppCompatActivity {
 
                         repos.add(new RepoItem(owner, name, description, avatar_url, formatedNumber(rate)));
                     }
-                    progressBar.setVisibility(View.GONE);
+
                     repoAdapter = new RepoAdapter(MainActivity.this, repos);
                     repoRecyclerView.setAdapter(repoAdapter);
+                    progressBar.setVisibility(View.GONE);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -115,6 +118,41 @@ public class MainActivity extends AppCompatActivity {
         requestQueue.add(request);
     }
 
+    private void loadMore(String Url){
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, Url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    JSONArray repoItems =  response.getJSONArray("items");
+                    for(int i=0; i<repoItems.length(); i++){
+                        JSONObject repo = repoItems.getJSONObject(i);
+
+                        String owner = repo.getJSONObject("owner").getString("login");
+                        String avatar_url = repo.getJSONObject("owner").getString("avatar_url");
+                        String name = repo.getString("name");
+                        String description = repo.getString("description");
+                        int rate = repo.getInt("stargazers_count");
+
+                        //
+
+                        repos.add(new RepoItem(owner, name, description, avatar_url, formatedNumber(rate)));
+                    }
+
+                    repoAdapter.notifyDataSetChanged();
+                    progressBar.setVisibility(View.GONE);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+            }
+        });
+
+        requestQueue.add(request);
+    }
     private String getDate(){
         String date = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         String wantedDate = "";
